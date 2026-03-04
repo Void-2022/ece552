@@ -5,7 +5,6 @@ module branch_decoder (
     input wire slt,
     output wire b_sel
 );
-    //TODO
     assign b_sel = (is_branch && ((funct3 == 3'b000 && eq) || // beq
                               (funct3 == 3'b001 && !eq) || // bne
                               (funct3 == 3'b100 && slt) || // blt
