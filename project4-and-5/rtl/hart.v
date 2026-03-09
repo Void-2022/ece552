@@ -137,244 +137,278 @@ module hart #(
     ,`RVFI_OUTPUTS,
 `endif
 );
-    /// Fill in your implementation here. ///
-    
-    // wire and reg declarations for the internal logic of the hart
-    wire [31:0] i_inst;
-    wire [2:0] o_opsel;
-    wire b_sel, rd_wen, o_sub, o_unsigned, o_arith, mem_wen, alu_src1, alu_src2;
-    wire [5:0] o_format;
-    // [0] R-type
-    // [1] I-type
-    // [2] S-type
-    // [3] B-type
-    // [4] U-type
-    // [5] J-type
-    wire u_format_load0;
-    
-    wire [1:0] sbhw_sel;
-    //determine whether the store instruction is a byte, halfword, or word store
-    wire [1:0] lbhw_sel;
-    //determine whether the load instruction is a byte, halfword, or word load
-    wire l_unsigned;
-    //determine whether the load instruction is a signed or unsigned load(we sign extend or zero extend)
-    wire is_jump, is_branch, is_jal, is_jalr;
-    wire eq, slt;
-    wire [31:0] op1, op2, alu_result;
-    //pc declaration
-    reg [31:0] pc; 
-    wire [31:0] next_pc, pc_add_4, pc_add_imm, imm;
 
-    //rf declaration
-    //address will be from the instruction, 
-    //rs1 is bits 19:15, 
-    //rs2 is bits 24:20, 
-    //and rd is bits 11:7
-    wire [31:0] rs1_rdata, rs2_rdata, rd_wdata;
+    ////////////////////////////////////////////////////////////////////////////////
+    // 1. PIPELINED SIGNALS
+    //
+    // These are signals used by the pipeline registers.
+    //
+    // Format: <stage1>_<stage2>_<optional_retire>_<signal_name>
+    //
+    // Meaning: <signal_name> from the <stage1>/<stage2> pipeline register that does
+    //          or does not eventually get piped to feed a retire signal for tests
+    //
+    // Example: if_id_retire_valid means the "valid" signal out of the IF/ID pipeline
+    //          register (so, produced in the IF stage, piped to the ID stage), that
+    //          will eventually be piped to feed into the retire signal bearing the
+    //          same name (o_retire_valid)
+    ////////////////////////////////////////////////////////////////////////////////
 
-    // from control, enables read from dmem
-    wire is_load;
 
-    // for store/load width logic
+    reg [31:0] pc; // the PC is effectively a pipeline register piping next pc value to the fetch stage for fetching
+
+
+    ////////////
+    // IF/ID //
+    //////////
+
+    // Since now the processor is pipelined, we can't just set the retire valid to be 1 anymore
+    // because an instruction is not being retired until the very first instruction end up
+    // at the WB stage.
+    //
+    // Therefore this valid signal, being instruction-specific, has to be piped all the way down to
+    // MEM/WB from IF/ID, for it to feed to o_retire_valid in the WB stage which is when it is being retired.
+    reg        if_id_retire_valid;
+    reg [31:0] if_id_retire_pc; // from pc
+    reg [31:0] if_id_retire_inst;
+    reg [31:0] if_id_pc4;
+
+
+    ////////////
+    // ID/EX //
+    //////////
+    reg        id_ex_retire_valid;
+    reg [31:0] id_ex_retire_pc;
+    reg [31:0] id_ex_retire_inst;
+    reg [31:0] id_ex_pc4;
+
+    // signals generated in the ID stage
+    reg [31:0] id_ex_imm;
+    reg [31:0] id_ex_retire_rs1_rdata;
+    reg [31:0] id_ex_retire_rs2_rdata;
+    reg [4:0]  id_ex_retire_rs1_raddr;
+    reg [4:0]  id_ex_retire_rs2_raddr;
+    reg [4:0]  id_ex_retire_rd_waddr;
+    reg [2:0]  id_ex_funct3;
+    reg [2:0]  id_ex_opsel;
+    reg        id_ex_sub;
+    reg        id_ex_unsigned;
+    reg        id_ex_arith;
+    reg        id_ex_mem_wen;
+    reg        id_ex_alu_src1;
+    reg        id_ex_alu_src2;
+    reg [5:0]  id_ex_format;
+    reg        id_ex_is_lui;
+    reg [1:0]  id_ex_sbhw_sel;
+    reg [1:0]  id_ex_lbhw_sel;
+    reg        id_ex_l_unsigned;
+    reg        id_ex_is_jump;
+    reg        id_ex_is_branch;
+    reg        id_ex_is_jal;
+    reg        id_ex_is_jalr;
+    reg        id_ex_is_load;
+    reg        id_ex_retire_rd_wen;
+
+
+
+    /////////////
+    // EX/MEM //
+    ///////////
+    reg        ex_mem_retire_valid;
+    reg [31:0] ex_mem_retire_pc;
+    reg [31:0] ex_mem_retire_inst;
+    reg [31:0] ex_mem_retire_next_pc;
+    reg [31:0] ex_mem_pc4;
+    reg [31:0] ex_mem_alu_result;
+    reg [31:0] ex_mem_retire_rs1_rdata;
+    reg [31:0] ex_mem_retire_rs2_rdata;
+    reg [4:0]  ex_mem_retire_rs1_raddr;
+    reg [4:0]  ex_mem_retire_rs2_raddr;
+    reg [4:0]  ex_mem_retire_rd_waddr;
+    reg        ex_mem_retire_rd_wen;
+    reg        ex_mem_mem_wen;
+    reg [1:0]  ex_mem_sbhw_sel;
+    reg [1:0]  ex_mem_lbhw_sel;
+    reg        ex_mem_l_unsigned;
+    reg        ex_mem_is_jump;
+    reg        ex_mem_is_load;
+    reg        ex_mem_halt;
+    reg        ex_mem_trap;
+
+
+    /////////////
+    // MEM/WB //
+    ///////////
+    reg        mem_wb_retire_valid;
+    reg [31:0] mem_wb_retire_pc;
+    reg [31:0] mem_wb_retire_inst;
+    reg [31:0] mem_wb_retire_next_pc;
+    reg [31:0] mem_wb_alu_result;
+    reg [31:0] mem_wb_pc4;
+    reg [31:0] mem_wb_load_result;
+    reg [31:0] mem_wb_retire_rs1_rdata;
+    reg [31:0] mem_wb_retire_rs2_rdata;
+    reg [4:0]  mem_wb_retire_rs1_raddr;
+    reg [4:0]  mem_wb_retire_rs2_raddr;
+    reg [4:0]  mem_wb_retire_rd_waddr;
+    reg        mem_wb_retire_rd_wen;
+    reg        mem_wb_is_jump;
+    reg        mem_wb_is_load;
+    reg        mem_wb_retire_halt;
+    reg        mem_wb_retire_trap;
+
+
+    ////////////////////////////////////////////////////////////////////////////////
+    // 2. COMBINATIONAL STAGE SIGNALS
+    //
+    // These are signals used in the datapath for each stage.
+    //
+    // Format: <stage>_<signal_name>
+    ////////////////////////////////////////////////////////////////////////////////
+     
+    // No hazard detection/stalling/forwarding logic yet 
+    // Use software-inserted NOP
+
+
+    ////////////////////////////////////
+    // FETCH COMB LOGIC - DRIVEN HERE //
+    ////////////////////////////////////
+    wire [31:0] if_inst;
+    wire [31:0] if_pc_plus4;
+    wire [31:0] if_next_pc;
+
+    assign o_imem_raddr = pc; // address to fetch the instruction is the current pc
+    assign if_inst = i_imem_rdata; // instruction fetched from imem
+    assign if_pc_plus4 = pc + 32'd4;
+
+
+    ////////////////////////////////////////////////////////////
+    // ID COMB LOGIC - DRIVEN BY CONTROL, RF, AND IMM MODULES //
+    ////////////////////////////////////////////////////////////
+    wire [2:0] id_opsel;
+    wire id_sub, id_unsigned, id_arith, id_mem_wen, id_alu_src1, id_alu_src2;
+    wire [5:0] id_format;
+    wire id_is_lui;
+    wire [1:0] id_sbhw_sel, id_lbhw_sel;
+    wire id_l_unsigned;
+    wire id_is_jump, id_is_branch, id_is_jal, id_is_jalr, id_is_load, id_rd_wen;
+    wire [31:0] id_imm;
+    wire [31:0] id_rs1_rdata, id_rs2_rdata;
+
+
+    //////////////////////////////////////////////////////////////////////////////
+    // EX COMB LOGIC - DRIVEN IN A HUGE BLOCK UNDERNEATH ALONG WITH MEM AND WEB //
+    //////////////////////////////////////////////////////////////////////////////
+    wire [31:0] ex_op1, ex_op2, ex_alu_result;
+    wire ex_eq, ex_slt, ex_b_sel;
+    wire ex_taken_control; // that we're either jumping or taking a branch
+    wire [31:0] ex_pc_add_imm;
+    wire [31:0] ex_jalr_target;
+    wire [31:0] ex_control_target;
+    wire [31:0] ex_instr_next_pc;
+
+    wire ex_halt_raw, ex_halt, ex_illegal_inst;
+    wire ex_misaligned_load, ex_misaligned_store, ex_misaligned_next_pc, ex_trap;
+
+
+    //////////////////////
+    /// MEM COMB LOGIC //
+    ////////////////////
     wire [3:0] load_mask;
     wire [3:0] store_mask;
     wire [3:0] dmem_mask_raw;
     wire [31:0] store_wdata_shifted;
-
     wire [31:0] load_shifted_data;
-    wire [31:0] load_result_data; // previous name: mem_data; this is what to load to reg
+    wire [31:0] load_result_data;
 
-    // retire/control helper signals
+    /////////////////////
+    /// WB COMB LOGIC //
+    ///////////////////
+    wire [31:0] wb_rd_wdata;
     wire rd_wen_safe;
-    wire [31:0] jalr_target;
 
 
-    /////////////////////////////////////////////////////////////////////////////////////////
-    /// INSTANTIATIONS  ////////////////////////////////////////////////////////////////////
-    ///////////////////////////////////////////////////////////////////////////////////////
-
-    //instantiate the control unit
+    ////////////////////////////////////////////////////////////////////////////////
+    // 3. MODULE INSTANTIATIONS
+    ////////////////////////////////////////////////////////////////////////////////
     control iControl (
-        .i_inst(i_inst),
-        .o_rd_wen(rd_wen),
-        .o_opsel(o_opsel),
-        .o_sub(o_sub),
-        .o_unsigned(o_unsigned),
-        .o_arith(o_arith),
-        .o_mem_wen(mem_wen),
-        .o_alu_src_2(alu_src2),
-        .o_format(o_format),
-        .o_is_lui(u_format_load0),
-        .o_alu_src_1(alu_src1),
-        .sbhw_sel(sbhw_sel),
-        .lbhw_sel(lbhw_sel),
-        .l_unsigned(l_unsigned),
-        .o_is_jump(is_jump),
-        .is_branch(is_branch),
-        .is_jal(is_jal),
-        .is_jalr(is_jalr),
-        .o_is_load(is_load)
+        .i_inst(if_id_retire_inst),
+        .o_rd_wen(id_rd_wen),
+        .o_opsel(id_opsel),
+        .o_sub(id_sub),
+        .o_unsigned(id_unsigned),
+        .o_arith(id_arith),
+        .o_mem_wen(id_mem_wen),
+        .o_alu_src_2(id_alu_src2),
+        .o_format(id_format),
+        .o_is_lui(id_is_lui),
+        .o_alu_src_1(id_alu_src1),
+        .sbhw_sel(id_sbhw_sel),
+        .lbhw_sel(id_lbhw_sel),
+        .l_unsigned(id_l_unsigned),
+        .o_is_jump(id_is_jump),
+        .is_branch(id_is_branch),
+        .is_jal(id_is_jal),
+        .is_jalr(id_is_jalr),
+        .o_is_load(id_is_load)
     );
 
-    //instantiate the branch decoder
-    branch_decoder iBD (
-        .funct3(i_inst[14:12]),
-        .is_branch(is_branch),
-        .eq(eq),
-        .slt(slt),
-        .b_sel(b_sel)
-    );
-
-    //instantiate the alu
-    alu iALU (
-        .i_op1(op1),
-        .i_op2(op2),
-        .i_opsel(o_opsel),
-        .i_sub(o_sub),
-        .i_unsigned(o_unsigned),
-        .i_arith(o_arith),
-        .o_result(alu_result),
-        .o_eq(eq),
-        .o_slt(slt)
-    );
-
-    assign op1 = alu_src1 ? (u_format_load0 ? 32'd0 : pc) : rs1_rdata;
-    assign op2 = alu_src2 ? rs2_rdata : imm;
-
-    //instantiate the immediate generator
     imm iImm (
-        .i_inst(i_inst),
-        .i_format(o_format),
-        .o_immediate(imm)
+        .i_inst(if_id_retire_inst),
+        .i_format(id_format),
+        .o_immediate(id_imm)
     );
 
-    //instantiate the register file
-    //enable is low for single cycle processor
-    rf #(.BYPASS_EN(0)) iRF (
+    // enable RF bypass for this no-hazard-detection pipeline version
+    rf #(.BYPASS_EN(1)) iRF (
         .i_clk(i_clk),
         .i_rst(i_rst),
-        .i_rs1_raddr(i_inst[19:15]),
-        .o_rs1_rdata(rs1_rdata),
-        .i_rs2_raddr(i_inst[24:20]),
-        .o_rs2_rdata(rs2_rdata),
+        .i_rs1_raddr(if_id_retire_inst[19:15]),
+        .o_rs1_rdata(id_rs1_rdata),
+        .i_rs2_raddr(if_id_retire_inst[24:20]),
+        .o_rs2_rdata(id_rs2_rdata),
         .i_rd_wen(rd_wen_safe),
-        .i_rd_waddr(i_inst[11:7]),
-        .i_rd_wdata(rd_wdata)
+        .i_rd_waddr(mem_wb_retire_rd_waddr),
+        .i_rd_wdata(wb_rd_wdata)
     );
 
-    // for RF's retires; not sure if needed
-    assign rd_wen_safe = rd_wen && !o_retire_halt && !o_retire_trap;
-    assign rd_wdata = is_load ? load_result_data :
-                      (is_jump) ? pc_add_4 : // for jal and jalr, we write the return address (pc + 4) to rd
-                      alu_result; // for other instructions, we write the result of the ALU calculation to rd
+    alu iALU (
+        .i_op1(ex_op1),
+        .i_op2(ex_op2),
+        .i_opsel(id_ex_opsel),
+        .i_sub(id_ex_sub),
+        .i_unsigned(id_ex_unsigned),
+        .i_arith(id_ex_arith),
+        .o_result(ex_alu_result),
+        .o_eq(ex_eq),
+        .o_slt(ex_slt)
+    );
 
-    /// "instantiate" the PC ///
-    always @(posedge i_clk) begin
-        if (i_rst) begin
-            pc <= RESET_ADDR;
-        end else begin
-            pc <= next_pc;
-        end
-    end
-
-
-    /////////////////////////////////////////////////////////////////////////////////////////
-    ////// LOGIC ///////////////////////////////////////////////////////////////////////////
-    ///////////////////////////////////////////////////////////////////////////////////////
-
-
-    //////////////////////////
-    /// INSTRUCTION FETCH ///
-    ////////////////////////
-    assign o_imem_raddr = pc; // the address to fetch the instruction from, which is the current pc
-    assign i_inst = i_imem_rdata; // instruction fetched from imem
-    assign o_retire_inst = i_inst; // the instruction being retired is the instruction fetched from imem
+    branch_decoder iBD (
+        .funct3(id_ex_funct3),
+        .is_branch(id_ex_is_branch),
+        .eq(ex_eq),
+        .slt(ex_slt),
+        .b_sel(ex_b_sel)
+    );
 
 
+    ////////////////////////////////////////////////////////////////////////////////
+    // 4. EX/MEM/WB COMBINATIONAL ASSIGNS
+    ////////////////////////////////////////////////////////////////////////////////
 
+    assign ex_op1 = id_ex_alu_src1 ? (id_ex_is_lui ? 32'd0 : id_ex_retire_pc) : id_ex_retire_rs1_rdata;
+    assign ex_op2 = id_ex_alu_src2 ? id_ex_retire_rs2_rdata : id_ex_imm;
 
-    /////////////////////////////
-    /// DATA MEMORY ACCESSES ///
-    ///////////////////////////
-    assign o_dmem_addr = {alu_result[31:2], 2'b00}; // dmem takes in aligned addresses
-    assign o_dmem_ren = is_load && !o_retire_trap;
-    assign o_dmem_wen = mem_wen && !o_retire_trap;
-
-
-
-    /////////////////////////////////////
-    /// DATA MEMORY ACCESSES - STORE ///
-    ///////////////////////////////////
-
-    // mask for load/store byte lanes - check long wall of text (line 53-72)
-    // note unalligned data memory accesses are not handled here, but in trap logic
-    assign load_mask = (lbhw_sel == 2'b00) ? ((alu_result[1:0] == 2'b00) ? 4'b0001 :
-                                              (alu_result[1:0] == 2'b01) ? 4'b0010 :
-                                              (alu_result[1:0] == 2'b10) ? 4'b0100 :
-                                                                          4'b1000) :
-                       (lbhw_sel == 2'b01) ? (alu_result[1] ? 4'b1100 : 4'b0011) :
-                       (lbhw_sel == 2'b10) ? 4'b1111 :
-                                              4'b0000;
-
-    assign store_mask = (sbhw_sel == 2'b00) ? ((alu_result[1:0] == 2'b00) ? 4'b0001 :
-                                               (alu_result[1:0] == 2'b01) ? 4'b0010 :
-                                               (alu_result[1:0] == 2'b10) ? 4'b0100 :
-                                                                           4'b1000) :
-                        (sbhw_sel == 2'b01) ? (alu_result[1] ? 4'b1100 : 4'b0011) :
-                        (sbhw_sel == 2'b10) ? 4'b1111 :
-                                               4'b0000;
-
-    assign dmem_mask_raw = is_load ? load_mask :
-                           mem_wen ? store_mask :
-                           4'b0000;
-
-    assign o_dmem_mask = o_retire_trap ? 4'b0000 : dmem_mask_raw; // unsure if needed
-
-    // shift rs2 into the selected byte lanes for store's writes
-    assign store_wdata_shifted = (alu_result[1:0] == 2'b00) ? rs2_rdata :
-                                 (alu_result[1:0] == 2'b01) ? {rs2_rdata[23:0], 8'b0} :
-                                 (alu_result[1:0] == 2'b10) ? {rs2_rdata[15:0], 16'b0} :
-                                                               {rs2_rdata[7:0], 24'b0};
-    assign o_dmem_wdata = store_wdata_shifted;
-
-
-
-    ////////////////////////////////////
-    /// DATA MEMORY ACCESSES - LOAD ///
-    //////////////////////////////////
-
-    // align selected byte lane to bits [7:0] before extension 
-    // ("only x bytes can be assumed to have valid data")
-    assign load_shifted_data = (alu_result[1:0] == 2'b00) ? i_dmem_rdata :
-                               (alu_result[1:0] == 2'b01) ? {8'b0,  i_dmem_rdata[31:8]} :
-                               (alu_result[1:0] == 2'b10) ? {16'b0, i_dmem_rdata[31:16]} :
-                                                             {24'b0, i_dmem_rdata[31:24]};
-
-    // load data selection and sign/zero extension
-    // ("shift the rdata word right by x bits and sign/zero extend as appropriate")
-    assign load_result_data = (lbhw_sel == 2'b00) ? // lb/lbu
-                        (l_unsigned ? {24'b0, load_shifted_data[7:0]} :
-                                      {{24{load_shifted_data[7]}}, load_shifted_data[7:0]}) :
-
-                        (lbhw_sel == 2'b01) ? // lh/lhu
-                            (l_unsigned ? {16'b0, load_shifted_data[15:0]} :
-                            {{16{load_shifted_data[15]}}, load_shifted_data[15:0]}) :
-
-                      (lbhw_sel == 2'b10) ? // lw
-                        load_shifted_data :
-                        32'b0;
-
-
-
-    ///////////////////////
-    //// RETIRE LOGIC ////
-    /////////////////////
+    assign ex_taken_control = ex_b_sel || id_ex_is_jal || id_ex_is_jalr;
+    assign ex_pc_add_imm = id_ex_retire_pc + id_ex_imm;
+    assign ex_jalr_target = {ex_alu_result[31:1], 1'b0};
+    assign ex_control_target = id_ex_is_jalr ? ex_jalr_target : ex_pc_add_imm;
+    assign ex_instr_next_pc = ex_taken_control ? ex_control_target : id_ex_pc4;
 
     // ebreak op code is 1 1 1 0 0 1 1 and other bits are 0
-    assign o_retire_halt = (i_inst[31:0]==32'h00100073) ? 1'b1 : 1'b0;
-
-    /// retired valid is asserted for evey cycle, for single cycle implementation ///
-    assign o_retire_valid = 1'b1;
+    assign ex_halt_raw = (id_ex_retire_inst == 32'h00100073);
+    assign ex_halt = id_ex_retire_valid && ex_halt_raw;
 
 
     ////////////////////////////
@@ -388,67 +422,311 @@ module hart #(
     //      2b. accessing addresses not ended with 00 for a lw/sw
     //      loading/storing a single byte is always fine
     // 3. unaligned instruction address on a taken branch or jump
-    
-    // useful signals
-    wire illegal_inst;
-    wire legal_inst;
-    wire misaligned_load, misaligned_store;
-    wire taken_control_flow;
-    wire misaligned_next_pc;
+    assign ex_illegal_inst = id_ex_retire_valid && (id_ex_format == 6'b000000) && !ex_halt_raw;
 
-    assign illegal_inst = ((o_format == 6'b000000) && !(o_retire_halt));
-
-    assign misaligned_load = is_load && (
-                                (lbhw_sel == 2'b01 && alu_result[0]) ||
-                                (lbhw_sel == 2'b10 && (alu_result[1:0] != 2'b00)) ||
-                                (lbhw_sel == 2'b11)
+    assign ex_misaligned_load = id_ex_retire_valid && id_ex_is_load && (
+                                (id_ex_lbhw_sel == 2'b01 && ex_alu_result[0]) ||
+                                (id_ex_lbhw_sel == 2'b10 && (ex_alu_result[1:0] != 2'b00)) ||
+                                (id_ex_lbhw_sel == 2'b11)
                              );
 
-    assign misaligned_store = mem_wen && (
-                                 (sbhw_sel == 2'b01 && alu_result[0]) ||
-                                 (sbhw_sel == 2'b10 && (alu_result[1:0] != 2'b00)) ||
-                                 (sbhw_sel == 2'b11)
+    assign ex_misaligned_store = id_ex_retire_valid && id_ex_mem_wen && (
+                                 (id_ex_sbhw_sel == 2'b01 && ex_alu_result[0]) ||
+                                 (id_ex_sbhw_sel == 2'b10 && (ex_alu_result[1:0] != 2'b00)) ||
+                                 (id_ex_sbhw_sel == 2'b11)
                               );
 
-    assign taken_control_flow = b_sel || is_jal || is_jalr;
-
-    assign misaligned_next_pc = taken_control_flow && (next_pc[1:0] != 2'b00);
-
-    assign o_retire_trap = illegal_inst || misaligned_load || misaligned_store || misaligned_next_pc;
+    assign ex_misaligned_next_pc = id_ex_retire_valid && ex_taken_control && (ex_control_target[1:0] != 2'b00);
     
+    assign ex_trap = ex_illegal_inst || ex_misaligned_load || ex_misaligned_store || ex_misaligned_next_pc;
+
+
+
+    // Branch/jump redirection is resolved in EX.
+    assign if_next_pc = (id_ex_retire_valid && ex_taken_control) ? ex_control_target : if_pc_plus4;
+
+
+    // Data memory access (MEM stage)
+    // dmem takes in aligned addresses
+    assign o_dmem_addr = {ex_mem_alu_result[31:2], 2'b00};
+    assign o_dmem_ren = ex_mem_retire_valid && ex_mem_is_load && !ex_mem_trap;
+    assign o_dmem_wen = ex_mem_retire_valid && ex_mem_mem_wen && !ex_mem_trap;
+
+
+    // masks for load/store byte lanes - check long wall of text (line 53-72)
+    // note unalligned data memory accesses are not handled here, but in trap logic
+    assign load_mask = (ex_mem_lbhw_sel == 2'b00) ? ((ex_mem_alu_result[1:0] == 2'b00) ? 4'b0001 :
+                                                      (ex_mem_alu_result[1:0] == 2'b01) ? 4'b0010 :
+                                                      (ex_mem_alu_result[1:0] == 2'b10) ? 4'b0100 :
+                                                                                          4'b1000) :
+                       (ex_mem_lbhw_sel == 2'b01) ? (ex_mem_alu_result[1] ? 4'b1100 : 4'b0011) :
+                       (ex_mem_lbhw_sel == 2'b10) ? 4'b1111 :
+                                                     4'b0000;
+
+    assign store_mask = (ex_mem_sbhw_sel == 2'b00) ? ((ex_mem_alu_result[1:0] == 2'b00) ? 4'b0001 :
+                                                       (ex_mem_alu_result[1:0] == 2'b01) ? 4'b0010 :
+                                                       (ex_mem_alu_result[1:0] == 2'b10) ? 4'b0100 :
+                                                                                           4'b1000) :
+                        (ex_mem_sbhw_sel == 2'b01) ? (ex_mem_alu_result[1] ? 4'b1100 : 4'b0011) :
+                        (ex_mem_sbhw_sel == 2'b10) ? 4'b1111 :
+                                                      4'b0000;
+
+    assign dmem_mask_raw = ex_mem_is_load ? load_mask :
+                           ex_mem_mem_wen ? store_mask :
+                           4'b0000;
+
+    assign o_dmem_mask = (!ex_mem_retire_valid || ex_mem_trap) ? 4'b0000 : dmem_mask_raw; // unsure if needed
+
+    // shift rs2 into the selected byte lanes for store's writes
+    assign store_wdata_shifted = (ex_mem_alu_result[1:0] == 2'b00) ? ex_mem_retire_rs2_rdata :
+                                 (ex_mem_alu_result[1:0] == 2'b01) ? {ex_mem_retire_rs2_rdata[23:0], 8'b0} :
+                                 (ex_mem_alu_result[1:0] == 2'b10) ? {ex_mem_retire_rs2_rdata[15:0], 16'b0} :
+                                                                       {ex_mem_retire_rs2_rdata[7:0], 24'b0};
+
+    assign o_dmem_wdata = store_wdata_shifted;
+
+    // align selected byte lane to bits [7:0] before extension
+    // ("only x bytes can be assumed to have valid data")
+    assign load_shifted_data = (ex_mem_alu_result[1:0] == 2'b00) ? i_dmem_rdata :
+                               (ex_mem_alu_result[1:0] == 2'b01) ? {8'b0,  i_dmem_rdata[31:8]} :
+                               (ex_mem_alu_result[1:0] == 2'b10) ? {16'b0, i_dmem_rdata[31:16]} :
+                                                                     {24'b0, i_dmem_rdata[31:24]};
+
+    // load data selection and sign/zero extension
+    // ("shift the rdata word right by x bits and sign/zero extend as appropriate")
+    assign load_result_data = (ex_mem_lbhw_sel == 2'b00) ? // lb/lbu
+                            (ex_mem_l_unsigned ? {24'b0, load_shifted_data[7:0]} :
+                                                 {{24{load_shifted_data[7]}}, load_shifted_data[7:0]}) :
+                            (ex_mem_lbhw_sel == 2'b01) ? // lh/lhu
+                            (ex_mem_l_unsigned ? {16'b0, load_shifted_data[15:0]} :
+                                                 {{16{load_shifted_data[15]}}, load_shifted_data[15:0]}) :
+                            (ex_mem_lbhw_sel == 2'b10) ? // lw
+                            load_shifted_data :
+                            32'b0;
+
+    // Register writeback mux
+    assign wb_rd_wdata = mem_wb_is_load ? mem_wb_load_result :
+                         mem_wb_is_jump ? mem_wb_pc4 :
+                         mem_wb_alu_result;
+
+    assign rd_wen_safe = mem_wb_retire_valid && mem_wb_retire_rd_wen && !mem_wb_retire_halt && !mem_wb_retire_trap;
+
+
+
+
+    //////////////////////////
+    //// 5. RETIRE LOGIC ////
+    ////////////////////////
+
+
+    ////////////////////////////////
+    // RETIRE OUTPUTS (WB STAGE) //
+    //////////////////////////////
+    assign o_retire_valid = mem_wb_retire_valid;
+    assign o_retire_inst = mem_wb_retire_inst;
+    assign o_retire_halt = mem_wb_retire_halt;
+    assign o_retire_trap = mem_wb_retire_trap;
+
 
     //////////////////////////
     /// RETIRE LOGIC - RF ///
     ////////////////////////
+    assign o_retire_rs1_raddr = mem_wb_retire_rs1_raddr;
+    assign o_retire_rs1_rdata = mem_wb_retire_rs1_rdata;
+    assign o_retire_rs2_raddr = mem_wb_retire_rs2_raddr;
+    assign o_retire_rs2_rdata = mem_wb_retire_rs2_rdata;
 
-    // per Piazza (question @78), we should not let through instruction
-    // fields only if they are used, contrary to the comments
-    assign o_retire_rs1_raddr = i_inst[19:15];
-    assign o_retire_rs1_rdata = rs1_rdata;
-    assign o_retire_rs2_raddr = i_inst[24:20];
-    assign o_retire_rs2_rdata = rs2_rdata;
-
-    // if the write enable is high and the write address matches the read address
-    // we can bypass the write data to the read data for the retire interface
-    assign o_retire_rd_waddr = rd_wen_safe ? i_inst[11:7] : 5'd0;
-    assign o_retire_rd_wdata = rd_wdata;
-
+    // retire writeback info from WB stage (rd_waddr is zero when no reg write retires)
+    assign o_retire_rd_waddr = rd_wen_safe ? mem_wb_retire_rd_waddr : 5'd0;
+    assign o_retire_rd_wdata = wb_rd_wdata;
 
     //////////////////////////
     /// RETIRE LOGIC - PC ///
     ////////////////////////
-
-    assign jalr_target = {alu_result[31:1], 1'b0};
-    assign pc_add_4 = pc + 4;
-    assign pc_add_imm = pc + imm; // the target address calculated by the branch/jump logic
-    assign next_pc = is_jalr ? jalr_target : (b_sel||is_jal ? pc_add_imm : pc_add_4);
-
-    //assign the retired pc to the current pc
-    assign o_retire_pc = pc;
-    assign o_retire_next_pc = next_pc;
+    assign o_retire_pc = mem_wb_retire_pc;
+    assign o_retire_next_pc = mem_wb_retire_next_pc;
 
 
+    ////////////////////////////////////////////////////////////////////////////////
+    // 6. PIPELINE REGISTERS
+    ////////////////////////////////////////////////////////////////////////////////
 
+    // PC register (IF)
+    always @(posedge i_clk) begin
+        if (i_rst) begin
+            pc <= RESET_ADDR;
+        end else begin
+            pc <= if_next_pc;
+        end
+    end
+
+    // IF/ID pipeline register
+    always @(posedge i_clk) begin
+        if (i_rst) begin
+            if_id_retire_valid <= 1'b0;
+            if_id_retire_pc <= 32'd0;
+            if_id_retire_inst <= 32'd0;
+            if_id_pc4 <= 32'd0;
+        end else begin
+            if_id_retire_valid <= 1'b1;
+            if_id_retire_pc <= pc;
+            if_id_retire_inst <= if_inst;
+            if_id_pc4 <= if_pc_plus4;
+        end
+    end
+
+    // ID/EX pipeline register
+    always @(posedge i_clk) begin
+        if (i_rst) begin
+            id_ex_retire_valid <= 1'b0;
+            id_ex_retire_pc <= 32'd0;
+            id_ex_retire_inst <= 32'd0;
+            id_ex_pc4 <= 32'd0;
+            id_ex_imm <= 32'd0;
+            id_ex_retire_rs1_rdata <= 32'd0;
+            id_ex_retire_rs2_rdata <= 32'd0;
+            id_ex_retire_rs1_raddr <= 5'd0;
+            id_ex_retire_rs2_raddr <= 5'd0;
+            id_ex_retire_rd_waddr <= 5'd0;
+            id_ex_funct3 <= 3'd0;
+            id_ex_opsel <= 3'd0;
+            id_ex_sub <= 1'b0;
+            id_ex_unsigned <= 1'b0;
+            id_ex_arith <= 1'b0;
+            id_ex_mem_wen <= 1'b0;
+            id_ex_alu_src1 <= 1'b0;
+            id_ex_alu_src2 <= 1'b0;
+            id_ex_format <= 6'd0;
+            id_ex_is_lui <= 1'b0;
+            id_ex_sbhw_sel <= 2'd0;
+            id_ex_lbhw_sel <= 2'd0;
+            id_ex_l_unsigned <= 1'b0;
+            id_ex_is_jump <= 1'b0;
+            id_ex_is_branch <= 1'b0;
+            id_ex_is_jal <= 1'b0;
+            id_ex_is_jalr <= 1'b0;
+            id_ex_is_load <= 1'b0;
+            id_ex_retire_rd_wen <= 1'b0;
+        end else begin
+            id_ex_retire_valid <= if_id_retire_valid;
+            id_ex_retire_pc <= if_id_retire_pc;
+            id_ex_retire_inst <= if_id_retire_inst;
+            id_ex_pc4 <= if_id_pc4;
+            id_ex_imm <= id_imm;
+            id_ex_retire_rs1_rdata <= id_rs1_rdata;
+            id_ex_retire_rs2_rdata <= id_rs2_rdata;
+            id_ex_retire_rs1_raddr <= if_id_retire_inst[19:15];
+            id_ex_retire_rs2_raddr <= if_id_retire_inst[24:20];
+            id_ex_retire_rd_waddr <= if_id_retire_inst[11:7];
+            id_ex_funct3 <= if_id_retire_inst[14:12];
+            id_ex_opsel <= id_opsel;
+            id_ex_sub <= id_sub;
+            id_ex_unsigned <= id_unsigned;
+            id_ex_arith <= id_arith;
+            id_ex_mem_wen <= id_mem_wen;
+            id_ex_alu_src1 <= id_alu_src1;
+            id_ex_alu_src2 <= id_alu_src2;
+            id_ex_format <= id_format;
+            id_ex_is_lui <= id_is_lui;
+            id_ex_sbhw_sel <= id_sbhw_sel;
+            id_ex_lbhw_sel <= id_lbhw_sel;
+            id_ex_l_unsigned <= id_l_unsigned;
+            id_ex_is_jump <= id_is_jump;
+            id_ex_is_branch <= id_is_branch;
+            id_ex_is_jal <= id_is_jal;
+            id_ex_is_jalr <= id_is_jalr;
+            id_ex_is_load <= id_is_load;
+            id_ex_retire_rd_wen <= id_rd_wen;
+        end
+    end
+
+    // EX/MEM pipeline register
+    always @(posedge i_clk) begin
+        if (i_rst) begin
+            ex_mem_retire_valid <= 1'b0;
+            ex_mem_retire_pc <= 32'd0;
+            ex_mem_retire_inst <= 32'd0;
+            ex_mem_retire_next_pc <= 32'd0;
+            ex_mem_pc4 <= 32'd0;
+            ex_mem_alu_result <= 32'd0;
+            ex_mem_retire_rs1_rdata <= 32'd0;
+            ex_mem_retire_rs2_rdata <= 32'd0;
+            ex_mem_retire_rs1_raddr <= 5'd0;
+            ex_mem_retire_rs2_raddr <= 5'd0;
+            ex_mem_retire_rd_waddr <= 5'd0;
+            ex_mem_retire_rd_wen <= 1'b0;
+            ex_mem_mem_wen <= 1'b0;
+            ex_mem_sbhw_sel <= 2'd0;
+            ex_mem_lbhw_sel <= 2'd0;
+            ex_mem_l_unsigned <= 1'b0;
+            ex_mem_is_jump <= 1'b0;
+            ex_mem_is_load <= 1'b0;
+            ex_mem_halt <= 1'b0;
+            ex_mem_trap <= 1'b0;
+        end else begin
+            ex_mem_retire_valid <= id_ex_retire_valid;
+            ex_mem_retire_pc <= id_ex_retire_pc;
+            ex_mem_retire_inst <= id_ex_retire_inst;
+            ex_mem_retire_next_pc <= ex_instr_next_pc;
+            ex_mem_pc4 <= id_ex_pc4;
+            ex_mem_alu_result <= ex_alu_result;
+            ex_mem_retire_rs1_rdata <= id_ex_retire_rs1_rdata;
+            ex_mem_retire_rs2_rdata <= id_ex_retire_rs2_rdata;
+            ex_mem_retire_rs1_raddr <= id_ex_retire_rs1_raddr;
+            ex_mem_retire_rs2_raddr <= id_ex_retire_rs2_raddr;
+            ex_mem_retire_rd_waddr <= id_ex_retire_rd_waddr;
+            ex_mem_retire_rd_wen <= id_ex_retire_rd_wen;
+            ex_mem_mem_wen <= id_ex_mem_wen;
+            ex_mem_sbhw_sel <= id_ex_sbhw_sel;
+            ex_mem_lbhw_sel <= id_ex_lbhw_sel;
+            ex_mem_l_unsigned <= id_ex_l_unsigned;
+            ex_mem_is_jump <= id_ex_is_jump;
+            ex_mem_is_load <= id_ex_is_load;
+            ex_mem_halt <= ex_halt;
+            ex_mem_trap <= ex_trap;
+        end
+    end
+
+    // MEM/WB pipeline register
+    always @(posedge i_clk) begin
+        if (i_rst) begin
+            mem_wb_retire_valid <= 1'b0;
+            mem_wb_retire_pc <= 32'd0;
+            mem_wb_retire_inst <= 32'd0;
+            mem_wb_retire_next_pc <= 32'd0;
+            mem_wb_alu_result <= 32'd0;
+            mem_wb_pc4 <= 32'd0;
+            mem_wb_load_result <= 32'd0;
+            mem_wb_retire_rs1_rdata <= 32'd0;
+            mem_wb_retire_rs2_rdata <= 32'd0;
+            mem_wb_retire_rs1_raddr <= 5'd0;
+            mem_wb_retire_rs2_raddr <= 5'd0;
+            mem_wb_retire_rd_waddr <= 5'd0;
+            mem_wb_retire_rd_wen <= 1'b0;
+            mem_wb_is_jump <= 1'b0;
+            mem_wb_is_load <= 1'b0;
+            mem_wb_retire_halt <= 1'b0;
+            mem_wb_retire_trap <= 1'b0;
+        end else begin
+            mem_wb_retire_valid <= ex_mem_retire_valid;
+            mem_wb_retire_pc <= ex_mem_retire_pc;
+            mem_wb_retire_inst <= ex_mem_retire_inst;
+            mem_wb_retire_next_pc <= ex_mem_retire_next_pc;
+            mem_wb_alu_result <= ex_mem_alu_result;
+            mem_wb_pc4 <= ex_mem_pc4;
+            mem_wb_load_result <= load_result_data;
+            mem_wb_retire_rs1_rdata <= ex_mem_retire_rs1_rdata;
+            mem_wb_retire_rs2_rdata <= ex_mem_retire_rs2_rdata;
+            mem_wb_retire_rs1_raddr <= ex_mem_retire_rs1_raddr;
+            mem_wb_retire_rs2_raddr <= ex_mem_retire_rs2_raddr;
+            mem_wb_retire_rd_waddr <= ex_mem_retire_rd_waddr;
+            mem_wb_retire_rd_wen <= ex_mem_retire_rd_wen;
+            mem_wb_is_jump <= ex_mem_is_jump;
+            mem_wb_is_load <= ex_mem_is_load;
+            mem_wb_retire_halt <= ex_mem_halt;
+            mem_wb_retire_trap <= ex_mem_trap;
+        end
+    end
 
 endmodule
 

@@ -1,0 +1,26 @@
+Some issues I found:
+
+- undeclared o_opsel_id, should be opsel_id
+
+- bit widths are wrong: funct3_id, pc_if, pc_id, pc_add_imm_ex, i_inst_if
+
+- o_retire_inst should be assigned to the instruction word at the wb stage.
+similarly, o_retire_rs1_raddr and o_retire_pc are also currently tied to the initial values, not the values at the correct pipelining stage.
+
+- also code has not yet accounted for the retire signals
+
+What I did (with the help of codex - so take that with a grain of salt) in hart.v:
+
+- fixed the undeclared signals, corrected bit widths
+
+- implemented logic for assigning the retires
+
+- reorganized our code a bit so the bulk of what we did in p3 ends up in 4. and 5.
+
+- split the pipeline registers into separate ones. I think this will make debugging easier, also the structure will be clearer.
+  furthermore, having one giant pipeline register that pipes all the stages will make the clock delay
+
+- slight changes to draw.io
+
+Also you don't have to always upload a separate file. We can just use hart.v. If we want previous versions we can use git to access them.
+You can try to run the assembly tests, by inserting nop instructions manually first to see if our design works. Then if it does, you can try implementing the stalling logic (that's step 2 of the p4 instructions)
