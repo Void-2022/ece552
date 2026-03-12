@@ -302,9 +302,9 @@ module hart #(
     assign if_pc_plus4 = pc + 32'd4;
 
 
-    ////////////////////////////////////////////////////////////
-    // ID COMB LOGIC - DRIVEN BY CONTROL, RF, AND IMM MODULES //
-    ////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////
+    // ID COMB LOGIC - DRIVEN BY CONTROL, RF, IMM, and HDU MODULES //
+    /////////////////////////////////////////////////////////////////
     wire [2:0] id_opsel;
     wire id_sub, id_unsigned, id_arith, id_mem_wen, id_alu_src1, id_alu_src2;
     wire [5:0] id_format;
@@ -314,6 +314,8 @@ module hart #(
     wire id_is_jump, id_is_branch, id_is_jal, id_is_jalr, id_is_load, id_rd_wen;
     wire [31:0] id_imm;
     wire [31:0] id_rs1_rdata, id_rs2_rdata;
+    wire hdu_pc_en, hdu_if_id_en, hdu_if_id_flush, hdu_id_ex_flush;
+
 
 
     //////////////////////////////////////////////////////////////////////////////
@@ -413,7 +415,22 @@ module hart #(
     );
 
     hazard_detection_unit iHDU(
-
+        .i_if_id_valid(if_id_retire_valid),
+        .i_if_id_inst(if_id_retire_inst),
+        .i_id_ex_valid(id_ex_retire_valid),
+        .i_id_ex_rd_wen(id_ex_retire_rd_wen),
+        .i_id_ex_rd_waddr(id_ex_retire_rd_waddr),
+        .i_id_ex_is_branch(id_ex_is_branch),
+        .i_id_ex_is_jal(id_ex_is_jal),
+        .i_id_ex_is_jalr(id_ex_is_jalr),
+        .i_ex_taken_control(ex_taken_control),
+        .i_ex_mem_valid(ex_mem_retire_valid),
+        .i_ex_mem_rd_wen(ex_mem_retire_rd_wen),
+        .i_ex_mem_rd_waddr(ex_mem_retire_rd_waddr),
+        .o_pc_en(hdu_pc_en),
+        .o_if_id_en(hdu_if_id_en),
+        .o_if_id_flush(hdu_if_id_flush),
+        .o_id_ex_flush(hdu_id_ex_flush)
     );
 
 
@@ -589,7 +606,7 @@ module hart #(
     always @(posedge i_clk) begin
         if (i_rst) begin
             pc <= RESET_ADDR;
-        end else begin
+        end else if (hdu_pc_en) begin
             pc <= if_next_pc;
         end
     end
@@ -601,7 +618,12 @@ module hart #(
             if_id_retire_pc <= 32'd0;
             if_id_retire_inst <= 32'd0;
             if_id_pc4 <= 32'd0;
-        end else begin
+        end else if (hdu_if_id_flush) begin
+            if_id_retire_valid <= 1'b0;
+            if_id_retire_pc <= 32'd0;
+            if_id_retire_inst <= 32'd0;
+            if_id_pc4 <= 32'd0;
+        end else if (hdu_if_id_en) begin
             if_id_retire_valid <= 1'b1;
             if_id_retire_pc <= pc;
             if_id_retire_inst <= if_inst;
@@ -612,6 +634,36 @@ module hart #(
     // ID/EX pipeline register
     always @(posedge i_clk) begin
         if (i_rst) begin
+            id_ex_retire_valid <= 1'b0;
+            id_ex_retire_pc <= 32'd0;
+            id_ex_retire_inst <= 32'd0;
+            id_ex_pc4 <= 32'd0;
+            id_ex_imm <= 32'd0;
+            id_ex_retire_rs1_rdata <= 32'd0;
+            id_ex_retire_rs2_rdata <= 32'd0;
+            id_ex_retire_rs1_raddr <= 5'd0;
+            id_ex_retire_rs2_raddr <= 5'd0;
+            id_ex_retire_rd_waddr <= 5'd0;
+            id_ex_funct3 <= 3'd0;
+            id_ex_opsel <= 3'd0;
+            id_ex_sub <= 1'b0;
+            id_ex_unsigned <= 1'b0;
+            id_ex_arith <= 1'b0;
+            id_ex_mem_wen <= 1'b0;
+            id_ex_alu_src1 <= 1'b0;
+            id_ex_alu_src2 <= 1'b0;
+            id_ex_format <= 6'd0;
+            id_ex_is_lui <= 1'b0;
+            id_ex_sbhw_sel <= 2'd0;
+            id_ex_lbhw_sel <= 2'd0;
+            id_ex_l_unsigned <= 1'b0;
+            id_ex_is_jump <= 1'b0;
+            id_ex_is_branch <= 1'b0;
+            id_ex_is_jal <= 1'b0;
+            id_ex_is_jalr <= 1'b0;
+            id_ex_is_load <= 1'b0;
+            id_ex_retire_rd_wen <= 1'b0;
+        end else if (hdu_id_ex_flush) begin
             id_ex_retire_valid <= 1'b0;
             id_ex_retire_pc <= 32'd0;
             id_ex_retire_inst <= 32'd0;

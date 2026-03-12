@@ -10,163 +10,178 @@ z2
 cModel Technology
 dC:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 551/Final_Exam
 valu
-Z0 !s110 1773294908
+Z0 !s110 1773357286
 !i10b 1
 !s100 =0fLQZ0ONJNNfPmAN=gdm1
 Z1 !s11b Dg1SIo80bB@j0V0VzS_@n1
-Izkf9ccMXRl17D9P1F7QWe0
+I4>eaIE?cJ_>]U?h:>I6Q[0
 Z2 VDg1SIo80bB@j0V0VzS_@n1
 Z3 dC:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/tb
 Z4 w1773287507
-8C:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/alu.v
-FC:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/alu.v
-!i122 2
+8../rtl/alu.v
+F../rtl/alu.v
+!i122 8
 L0 8 130
 Z5 OV;L;2020.1;71
 r1
 !s85 0
 31
-Z6 !s108 1773294907.000000
-!s107 C:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/alu.v|
-!s90 -reportprogress|300|-work|work|-stats=none|C:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/alu.v|
+Z6 !s108 1773357285.000000
+!s107 tb.v|../rtl/rf.v|../rtl/imm.v|../rtl/hazard_detection_unit.v|../rtl/hart.v|../rtl/control.v|../rtl/branch_decoder.v|../rtl/alu.v|
+Z7 !s90 ../rtl/alu.v|../rtl/branch_decoder.v|../rtl/control.v|../rtl/hart.v|../rtl/hazard_detection_unit.v|../rtl/imm.v|../rtl/rf.v|tb.v|
 !i113 1
-Z7 o-work work
 Z8 tCvgOpt 0
 vbranch_decoder
 R0
 !i10b 1
-!s100 3:aRFbMWO3FoTRMhNRQ<C0
+!s100 [B;;ONCK5iUbh^G[1WOAR3
 R1
-IE:<:99d><Q_KP_CNJ9EHH3
+I@=JTeOE1TEnhz]IMTK`IS2
 R2
 R3
-R4
-8C:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/branch_decoder.v
-FC:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/branch_decoder.v
-!i122 3
-L0 1 16
+w1773296556
+8../rtl/branch_decoder.v
+F../rtl/branch_decoder.v
+!i122 8
+L0 1 15
 R5
 r1
 !s85 0
 31
-Z9 !s108 1773294908.000000
-!s107 C:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/branch_decoder.v|
-!s90 -reportprogress|300|-work|work|-stats=none|C:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/branch_decoder.v|
-!i113 1
+R6
+Z9 !s107 tb.v|../rtl/rf.v|../rtl/imm.v|../rtl/hazard_detection_unit.v|../rtl/hart.v|../rtl/control.v|../rtl/branch_decoder.v|../rtl/alu.v|
 R7
+!i113 1
 R8
 vcontrol
 R0
 !i10b 1
 !s100 dAhj]8TJ6eL=EelFUJI4@1
 R1
-I0bdd5zM1QEj<fS5ZA7<la3
+I[Nb<FLmz]iFYMb0iL3AkV2
 R2
 R3
 R4
-8C:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/control.v
-FC:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/control.v
-!i122 4
+8../rtl/control.v
+F../rtl/control.v
+!i122 8
 L0 1 141
 R5
 r1
 !s85 0
 31
+R6
 R9
-!s107 C:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/control.v|
-!s90 -reportprogress|300|-work|work|-stats=none|C:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/control.v|
-!i113 1
 R7
+!i113 1
 R8
 vhart
 R0
 !i10b 1
-!s100 HbNVjYf0nha`mLYg[I7iO3
+!s100 eL;kz^1>J136c?GW?J4^h0
 R1
-IX?TcbZi5Wa`J=@9e1zfS^0
+IZPAYdFKJ_o>K>3>oZiclG1
 R2
 R3
-w1773293378
-8C:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/hart.v
-FC:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/hart.v
-!i122 5
-L0 2 783
+w1773357250
+8../rtl/hart.v
+F../rtl/hart.v
+!i122 8
+L0 2 837
 R5
 r1
 !s85 0
 31
+R6
 R9
-!s107 C:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/hart.v|
-!s90 -reportprogress|300|-work|work|-stats=none|C:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/hart.v|
-!i113 1
 R7
+!i113 1
 R8
 vhart_tb
-!s110 1773294907
+R0
 !i10b 1
 !s100 _CC40:@EQjdEU=FF^[@F31
 R1
-I7_QWOizR@z[gTz0MWTRa?2
+IQ59M72[@k?^iWMjEIUdWd2
 R2
 R3
 R4
-8C:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/tb/tb.v
-FC:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/tb/tb.v
-!i122 1
+8tb.v
+Ftb.v
+!i122 8
 L0 2 182
 R5
 r1
 !s85 0
 31
 R6
-!s107 C:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/tb/tb.v|
-!s90 -reportprogress|300|-work|work|-stats=none|C:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/tb/tb.v|
-!i113 1
+R9
 R7
+!i113 1
+R8
+vhazard_detection_unit
+R0
+!i10b 1
+!s100 ?QfiGfmL9:f<KLQnFnK?L1
+R1
+Ie:bh6a:B=D<Xzm;gEnMDj1
+R2
+R3
+w1773357220
+8../rtl/hazard_detection_unit.v
+F../rtl/hazard_detection_unit.v
+!i122 8
+L0 1 130
+R5
+r1
+!s85 0
+31
+R6
+R9
+R7
+!i113 1
 R8
 vimm
 R0
 !i10b 1
 !s100 h?;niN]FEoBeNE0??91H90
 R1
-ISciU?Q7aj1lA4D_IHbm2P0
+ICi[MagLLQ]n9ai7`8i7CI0
 R2
 R3
 R4
-8C:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/imm.v
-FC:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/imm.v
-!i122 6
+8../rtl/imm.v
+F../rtl/imm.v
+!i122 8
 L0 6 53
 R5
 r1
 !s85 0
 31
+R6
 R9
-!s107 C:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/imm.v|
-!s90 -reportprogress|300|-work|work|-stats=none|C:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/imm.v|
-!i113 1
 R7
+!i113 1
 R8
 vrf
 R0
 !i10b 1
 !s100 mc`mnT=GPU`V4LiOPY3`G2
 R1
-ImX;l`<eh]@BE50@J08AEX1
+I:TmR1^jQo^PS[@jT113AG0
 R2
 R3
 R4
-8C:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/rf.v
-FC:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/rf.v
-!i122 7
+8../rtl/rf.v
+F../rtl/rf.v
+!i122 8
 L0 8 109
 R5
 r1
 !s85 0
 31
+R6
 R9
-!s107 C:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/rf.v|
-!s90 -reportprogress|300|-work|work|-stats=none|C:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/rf.v|
-!i113 1
 R7
+!i113 1
 R8
