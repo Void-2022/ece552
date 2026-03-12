@@ -1,0 +1,172 @@
+m255
+K4
+z2
+!s11f vlog 2020.1 2020.02, Feb 28 2020
+13
+!s112 1.1
+!i10d 8192
+!i10e 25
+!i10f 100
+cModel Technology
+dC:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 551/Final_Exam
+valu
+Z0 !s110 1773294908
+!i10b 1
+!s100 =0fLQZ0ONJNNfPmAN=gdm1
+Z1 !s11b Dg1SIo80bB@j0V0VzS_@n1
+Izkf9ccMXRl17D9P1F7QWe0
+Z2 VDg1SIo80bB@j0V0VzS_@n1
+Z3 dC:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/tb
+Z4 w1773287507
+8C:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/alu.v
+FC:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/alu.v
+!i122 2
+L0 8 130
+Z5 OV;L;2020.1;71
+r1
+!s85 0
+31
+Z6 !s108 1773294907.000000
+!s107 C:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/alu.v|
+!s90 -reportprogress|300|-work|work|-stats=none|C:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/alu.v|
+!i113 1
+Z7 o-work work
+Z8 tCvgOpt 0
+vbranch_decoder
+R0
+!i10b 1
+!s100 3:aRFbMWO3FoTRMhNRQ<C0
+R1
+IE:<:99d><Q_KP_CNJ9EHH3
+R2
+R3
+R4
+8C:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/branch_decoder.v
+FC:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/branch_decoder.v
+!i122 3
+L0 1 16
+R5
+r1
+!s85 0
+31
+Z9 !s108 1773294908.000000
+!s107 C:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/branch_decoder.v|
+!s90 -reportprogress|300|-work|work|-stats=none|C:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/branch_decoder.v|
+!i113 1
+R7
+R8
+vcontrol
+R0
+!i10b 1
+!s100 dAhj]8TJ6eL=EelFUJI4@1
+R1
+I0bdd5zM1QEj<fS5ZA7<la3
+R2
+R3
+R4
+8C:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/control.v
+FC:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/control.v
+!i122 4
+L0 1 141
+R5
+r1
+!s85 0
+31
+R9
+!s107 C:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/control.v|
+!s90 -reportprogress|300|-work|work|-stats=none|C:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/control.v|
+!i113 1
+R7
+R8
+vhart
+R0
+!i10b 1
+!s100 HbNVjYf0nha`mLYg[I7iO3
+R1
+IX?TcbZi5Wa`J=@9e1zfS^0
+R2
+R3
+w1773293378
+8C:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/hart.v
+FC:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/hart.v
+!i122 5
+L0 2 783
+R5
+r1
+!s85 0
+31
+R9
+!s107 C:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/hart.v|
+!s90 -reportprogress|300|-work|work|-stats=none|C:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/hart.v|
+!i113 1
+R7
+R8
+vhart_tb
+!s110 1773294907
+!i10b 1
+!s100 _CC40:@EQjdEU=FF^[@F31
+R1
+I7_QWOizR@z[gTz0MWTRa?2
+R2
+R3
+R4
+8C:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/tb/tb.v
+FC:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/tb/tb.v
+!i122 1
+L0 2 182
+R5
+r1
+!s85 0
+31
+R6
+!s107 C:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/tb/tb.v|
+!s90 -reportprogress|300|-work|work|-stats=none|C:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/tb/tb.v|
+!i113 1
+R7
+R8
+vimm
+R0
+!i10b 1
+!s100 h?;niN]FEoBeNE0??91H90
+R1
+ISciU?Q7aj1lA4D_IHbm2P0
+R2
+R3
+R4
+8C:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/imm.v
+FC:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/imm.v
+!i122 6
+L0 6 53
+R5
+r1
+!s85 0
+31
+R9
+!s107 C:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/imm.v|
+!s90 -reportprogress|300|-work|work|-stats=none|C:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/imm.v|
+!i113 1
+R7
+R8
+vrf
+R0
+!i10b 1
+!s100 mc`mnT=GPU`V4LiOPY3`G2
+R1
+ImX;l`<eh]@BE50@J08AEX1
+R2
+R3
+R4
+8C:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/rf.v
+FC:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/rf.v
+!i122 7
+L0 8 109
+R5
+r1
+!s85 0
+31
+R9
+!s107 C:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/rf.v|
+!s90 -reportprogress|300|-work|work|-stats=none|C:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/rf.v|
+!i113 1
+R7
+R8

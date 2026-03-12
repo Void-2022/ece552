@@ -1,0 +1,36 @@
+{C:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/tb/tb.v} {1 {vlog -work work -stats=none {C:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/tb/tb.v}
+Model Technology ModelSim - Intel FPGA Edition vlog 2020.1 Compiler 2020.02 Feb 28 2020
+-- Compiling module hart_tb
+
+Top level modules:
+	hart_tb
+
+} {} {}} {C:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/alu.v} {1 {vlog -work work -stats=none {C:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/alu.v}
+Model Technology ModelSim - Intel FPGA Edition vlog 2020.1 Compiler 2020.02 Feb 28 2020
+-- Compiling module alu
+
+Top level modules:
+	alu
+
+} {} {}} {C:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/imm.v} {1 {vlog -work work -stats=none {C:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/imm.v}
+Model Technology ModelSim - Intel FPGA Edition vlog 2020.1 Compiler 2020.02 Feb 28 2020
+-- Compiling module imm
+
+Top level modules:
+	imm
+
+} {} {}} {C:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/rf.v} {1 {vlog -work work -stats=none {C:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/rf.v}
+Model Technology ModelSim - Intel FPGA Edition vlog 2020.1 Compiler 2020.02 Feb 28 2020
+-- Compiling module rf
+
+Top level modules:
+	rf
+
+} {} {}} {C:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/control.v} {1 {vlog -work work -stats=none {C:/Users/Kewei Yang/OneDrive - UW-Madison/Documents/Madison/ECE/ECE 552/Projects/wisc26-public/ece552/project4-and-5/rtl/control.v}
+Model Technology ModelSim - Intel FPGA Edition vlog 2020.1 Compiler 2020.02 Feb 28 2020
+-- Compiling module control
+
+Top level modules:
+	control
+
+} {} {}}

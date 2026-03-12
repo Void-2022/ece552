@@ -55,8 +55,6 @@ module hart #(
     // 16-bit (half-byte) aligned addresses, respectively. To support this, 
     // the access mask specifies which bytes within the 32-bit word are actually 
     // read from or written to memory.
-    //                         12345678 => 1000 1001 1002 1003
-    //                          byte0 byte1 b2 b3
     // To perform a half-word read at address 0x00001003, align `o_dmem_addr`
     // to 0x00001000, assert `o_dmem_ren`, and set the mask to 0b1100 to
     // indicate that only the upper two bytes should be read. Only the upper
@@ -125,6 +123,22 @@ module hart #(
     // writeback stage by this instruction. If rd is 5'd0, this field is
     // ignored and can be treated as a don't care.
     output wire [31:0] o_retire_rd_wdata,  // DRIVEN
+
+
+    // dmem address used by the retired instruction
+    output wire [31:0] o_retire_dmem_addr, // DRIVEN
+    // hot if retired instruction is load
+    output wire        o_retire_dmem_ren,  // DRIVEN
+    // hot if retired instruction is store
+    output wire        o_retire_dmem_wen,  // DRIVEN
+    // byte-lane mask used by the retired memory access
+    output wire [ 3:0] o_retire_dmem_mask, // DRIVEN
+    // data written by the retired store. don't-care when wen not asserted
+    output wire [31:0] o_retire_dmem_wdata, // DRIVEN
+    // word returned by memory for the retired load. don't-care when ren deasserted
+    output wire [31:0] o_retire_dmem_rdata, // DRIVEN
+
+
     // The current program counter of the instruction being retired - i.e.
     // the instruction memory address that the instruction was fetched from.
     output wire [31:0] o_retire_pc,  // DRIVEN
@@ -256,6 +270,12 @@ module hart #(
     reg        mem_wb_is_load;
     reg        mem_wb_retire_halt;
     reg        mem_wb_retire_trap;
+    reg [31:0] mem_wb_retire_dmem_addr;
+    reg        mem_wb_retire_dmem_ren;
+    reg        mem_wb_retire_dmem_wen;
+    reg [ 3:0] mem_wb_retire_dmem_mask;
+    reg [31:0] mem_wb_retire_dmem_wdata;
+    reg [31:0] mem_wb_retire_dmem_rdata;
 
 
     ////////////////////////////////////////////////////////////////////////////////
@@ -392,6 +412,10 @@ module hart #(
         .b_sel(ex_b_sel)
     );
 
+    hazard_detection_unit iHDU(
+
+    );
+
 
     ////////////////////////////////////////////////////////////////////////////////
     // 4. EX/MEM/WB COMBINATIONAL ASSIGNS
@@ -442,7 +466,7 @@ module hart #(
 
 
 
-    // Branch/jump redirection is resolved in EX.
+    // Branch/jump redirection resolved in EX
     assign if_next_pc = (id_ex_retire_valid && ex_taken_control) ? ex_control_target : if_pc_plus4;
 
 
@@ -539,6 +563,16 @@ module hart #(
     // retire writeback info from WB stage (rd_waddr is zero when no reg write retires)
     assign o_retire_rd_waddr = rd_wen_safe ? mem_wb_retire_rd_waddr : 5'd0;
     assign o_retire_rd_wdata = wb_rd_wdata;
+
+    ////////////////////////////
+    /// RETIRE LOGIC - DMEM ///
+    //////////////////////////
+    assign o_retire_dmem_addr = mem_wb_retire_dmem_addr;
+    assign o_retire_dmem_ren = mem_wb_retire_dmem_ren;
+    assign o_retire_dmem_wen = mem_wb_retire_dmem_wen;
+    assign o_retire_dmem_mask = mem_wb_retire_dmem_mask;
+    assign o_retire_dmem_wdata = mem_wb_retire_dmem_wdata;
+    assign o_retire_dmem_rdata = mem_wb_retire_dmem_rdata;
 
     //////////////////////////
     /// RETIRE LOGIC - PC ///
@@ -707,6 +741,12 @@ module hart #(
             mem_wb_is_load <= 1'b0;
             mem_wb_retire_halt <= 1'b0;
             mem_wb_retire_trap <= 1'b0;
+            mem_wb_retire_dmem_addr <= 32'd0;
+            mem_wb_retire_dmem_ren <= 1'b0;
+            mem_wb_retire_dmem_wen <= 1'b0;
+            mem_wb_retire_dmem_mask <= 4'd0;
+            mem_wb_retire_dmem_wdata <= 32'd0;
+            mem_wb_retire_dmem_rdata <= 32'd0;
         end else begin
             mem_wb_retire_valid <= ex_mem_retire_valid;
             mem_wb_retire_pc <= ex_mem_retire_pc;
@@ -725,6 +765,21 @@ module hart #(
             mem_wb_is_load <= ex_mem_is_load;
             mem_wb_retire_halt <= ex_mem_halt;
             mem_wb_retire_trap <= ex_mem_trap;
+            if (o_dmem_ren || o_dmem_wen) begin
+                mem_wb_retire_dmem_addr <= o_dmem_addr;
+                mem_wb_retire_dmem_ren <= o_dmem_ren;
+                mem_wb_retire_dmem_wen <= o_dmem_wen;
+                mem_wb_retire_dmem_mask <= o_dmem_mask;
+                mem_wb_retire_dmem_wdata <= o_dmem_wdata;
+                mem_wb_retire_dmem_rdata <= o_dmem_ren ? i_dmem_rdata : 32'd0;
+            end else begin
+                mem_wb_retire_dmem_addr <= 32'd0;
+                mem_wb_retire_dmem_ren <= 1'b0;
+                mem_wb_retire_dmem_wen <= 1'b0;
+                mem_wb_retire_dmem_mask <= 4'd0;
+                mem_wb_retire_dmem_wdata <= 32'd0;
+                mem_wb_retire_dmem_rdata <= 32'd0;
+            end
         end
     end
 
